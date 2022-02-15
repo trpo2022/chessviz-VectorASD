@@ -1,5 +1,5 @@
 LIBS =
-CFLAGS = -Wall
+CFLAGS = -Wall -Werror
 SRC = $(wildcard *.c)
 
 test: $(SRC)
