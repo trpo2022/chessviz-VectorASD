@@ -1,0 +1,15 @@
+# Assembly artifacts
+*.exe
+*.dll
+*.o
+*.so
+*.dylib
+#*
+test
+
+# Backup files
+*.swp
+*~
+
+# A chessboard
+*.html
