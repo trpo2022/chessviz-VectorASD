@@ -21,13 +21,13 @@ struct Vector* vector_new()
     new->size = 0;
     return new;
 }
-void vector_add(struct Vector* vec, text Str)
+void vector_add(struct Vector* vec, text str)
 {
     struct VectorNode* new
             = (struct VectorNode*)malloc(sizeof(struct VectorNode));
-    int len = strlen(Str) + 1;
+    int len = strlen(str) + 1;
     char* step = (char*)malloc(len);
-    memcpy(step, Str, len);
+    memcpy(step, str, len);
     new->step = step;
     new->child = 0;
     if (vec->size++)
@@ -85,7 +85,7 @@ void vector_test()
     vector_delete(vec);
 }
 
-int Builder(char Board[8][8])
+int builder(char board[8][8], struct Vector* history)
 {
     FILE* file;
     if ((file = fopen("result.html", "w")) == NULL) {
@@ -102,9 +102,9 @@ int Builder(char Board[8][8])
             "    table.chessboard {\n"
             "      border: 5px solid #333;\n"
             "      border-collapse: collapse;\n"
-            "      height: 320px;\n"
+            "      height: 361px;\n"
             "      margin: 20px;\n"
-            "      width: 320px;\n"
+            "      width: 361px;\n"
             "    }\n"
             "    table.chessboard caption {\n"
             "      text-align: left;\n"
@@ -117,9 +117,27 @@ int Builder(char Board[8][8])
             "      vertical-align: middle;\n"
             "      width: 40px;\n"
             "    }\n"
-            "    table.chessboard tr:nth-child(odd) td:nth-child(even),\n"
-            "    table.chessboard tr:nth-child(even) td:nth-child(odd) {\n"
+            "    table.chessboard tr:nth-child(even) td:nth-child(even),\n"
+            "    table.chessboard tr:nth-child(odd) td:nth-child(odd) {\n"
             "      background-color: #999;\n"
+            "    }\n"
+            "    table.chessboard tr:nth-child(9) td:nth-child(n) {\n"
+            "      height: 20px;\n"
+            "      border-top: 3px solid #555;\n"
+            "    }\n"
+            "    table.chessboard tr:nth-child(n) td:nth-child(1) {\n"
+            "      width: 20px;\n"
+            "      border-right: 3px solid #555;\n"
+            "    }\n"
+            "    table.chessboard tr:nth-child(9) td:nth-child(1) {\n"
+            "      border: none;\n"
+            "    }\n"
+            "    table.chessboard tr:nth-child(9) td:nth-child(n),\n"
+            "    table.chessboard tr:nth-child(n) td:nth-child(1) {\n"
+            "      background-color: #ffd800;\n"
+            "      color: #fffbe6;\n"
+            "      font-size: 16px;\n"
+            "      text-shadow: 1px 1px 1px #a25f2a;\n"
             "    }\n"
             "    table.chessboard .white.king:before   { content: \"\\2654\"; "
             "}\n"
@@ -145,61 +163,73 @@ int Builder(char Board[8][8])
             "}\n"
             "    table.chessboard .black.pawn:before   { content: \"\\265F\"; "
             "}\n"
+            "    div { margin-left: 20px; }\n"
             "  </style>\n"
             "</head>\n"
             "<body>\n"
-            "  <table class=\"chessboard\">\n"
-            "    <caption>1. e2-e4</caption>\n");
-    for (int Y = 0; Y < 8; Y++) {
-        fprintf(file, "    <tr>\n");
-        for (int X = 0; X < 8; X++) {
-            char Tile = Board[Y][X];
-            text Line = "";
-            switch (Tile) {
+            "  <table class=\"chessboard\">\n");
+    struct VectorNode* node = history->first;
+    int n = 0;
+    while (node) {
+        fprintf(file,
+                "    <caption>%u. %s</caption>\n",
+                n++ / 2 + 1,
+                node->step);
+        node = node->child;
+    }
+    for (int y = 0; y < 8; y++) {
+        fprintf(file, "    <tr><td>%u</td>\n", 8 - y);
+        for (int x = 0; x < 8; x++) {
+            char tile = board[y][x];
+            text line = "";
+            switch (tile) {
             case 'r':
-                Line = "<span class=\"black rook\"></span>";
+                line = "<span class=\"black rook\"></span>";
                 break;
             case 'n':
-                Line = "<span class=\"black knight\"></span>";
+                line = "<span class=\"black knight\"></span>";
                 break;
             case 'b':
-                Line = "<span class=\"black bishop\">";
+                line = "<span class=\"black bishop\">";
                 break;
             case 'q':
-                Line = "<span class=\"black queen\">";
+                line = "<span class=\"black queen\">";
                 break;
             case 'k':
-                Line = "<span class=\"black king\">";
+                line = "<span class=\"black king\">";
                 break;
             case 'p':
-                Line = "<span class=\"black pawn\">";
+                line = "<span class=\"black pawn\">";
                 break;
             case 'R':
-                Line = "<span class=\"white rook\"></span>";
+                line = "<span class=\"white rook\"></span>";
                 break;
             case 'N':
-                Line = "<span class=\"white knight\"></span>";
+                line = "<span class=\"white knight\"></span>";
                 break;
             case 'B':
-                Line = "<span class=\"white bishop\">";
+                line = "<span class=\"white bishop\">";
                 break;
             case 'Q':
-                Line = "<span class=\"white queen\">";
+                line = "<span class=\"white queen\">";
                 break;
             case 'K':
-                Line = "<span class=\"white king\">";
+                line = "<span class=\"white king\">";
                 break;
             case 'P':
-                Line = "<span class=\"white pawn\">";
+                line = "<span class=\"white pawn\">";
                 break;
             }
-            fprintf(file, "      <td>%s</td>\n", Line);
+            fprintf(file, "      <td>%s</td>\n", line);
         }
         fprintf(file, "    </tr>\n");
     }
     fprintf(file,
+            "    "
+            "<tr><td></td><td>A</td><td>B</td><td>C</td><td>D</td><td>E</"
+            "td><td>F</td><td>G</td><td>H</td></tr>\n"
             "  </table>\n"
-            "  После каждого хода обновляйте страницу\n"
+            "  <div>После каждого хода обновляйте страницу</div>\n"
             "</body>\n"
             "</html>");
     fclose(file);
@@ -207,52 +237,49 @@ int Builder(char Board[8][8])
     return 0;
 }
 
-char lower(char S)
-{
-    return S >= 'A' && S <= 'Z' ? S - 'A' + 'a' : S;
-}
 struct Step {
-    char Figure, X, Y, Type, X2, Y2, Figure2, Gen;
-    text Err;
+    char figure, x, y, type, x2, y2, figure2, gen;
+    text err, src;
 };
 
-struct Step Error(text Err)
+struct Step error(text err)
 {
-    struct Step step = {.Err = Err, .Gen = 0};
+    struct Step step = {.err = err, .gen = 0};
     return step;
 }
-struct Step Error2(int N, char C)
+struct Step error2(int n, char c)
 {
-    text Errors[]
+    text errors[]
             = {"Ожидался ввод клетки ходящей фигуры или её тип",
                "Ожидался ввод клетки ходящей фигуры",
                "Ожидался ввод типа хода",
                "Ожидался ввод клетки, куда походит фигура",
                "Ожидался ввод типа съедаемой фигуры или шах или мат или en "
                "passant"};
-    char* Err = (char*)malloc(100);
-    sprintf(Err, "%s, а было введено: '%c'", Errors[N], C);
-    struct Step step = {.Err = Err, .Gen = 1};
+    char* err = (char*)malloc(100);
+    sprintf(err, "%s, а было введено: '%c'", errors[n], c);
+    struct Step step = {.err = err, .gen = 1};
     return step;
 }
-struct Step Parser(text Str)
+struct Step parser(text str)
 {
-    int Pos = 0, R = 0;
+    int pos = 0, R = 0;
     struct Step step
-            = {.Figure = 0,
-               .X = 0,
-               .Y = 0,
-               .Type = 0,
-               .X2 = 0,
-               .Y2 = 0,
-               .Figure2 = 0,
-               .Err = 0};
-    while (Str[Pos] && R < 5) {
-        char Let = Str[Pos++];
-        if (Let == ' ')
+            = {.figure = 0,
+               .x = 0,
+               .y = 0,
+               .type = 0,
+               .x2 = 0,
+               .y2 = 0,
+               .figure2 = 0,
+               .err = 0,
+               .src = str};
+    while (str[pos] && R < 5) {
+        char let = str[pos++];
+        if (let == ' ')
             continue;
-        printf("W%d: %c\n", R, Let);
-        switch (Let) {
+        printf("W%d: %c\n", R, let);
+        switch (let) {
         case 'K':
         case 'Q':
         case 'R':
@@ -260,11 +287,11 @@ struct Step Parser(text Str)
         case 'N':
         case 'P':
             if (R == 0)
-                step.Figure = Let;
+                step.figure = let;
             else if (R == 4)
-                step.Figure2 = Let;
+                step.figure2 = let;
             else
-                return Error2(R, Let);
+                return error2(R, let);
             R += 1;
             break;
         case 'a':
@@ -276,18 +303,19 @@ struct Step Parser(text Str)
         case 'g':
         case 'h':
             if (R == 0 || R == 1) {
-                if (step.X)
-                    return Error(
+                if (step.x)
+                    return error(
                             "Вы уже ввели букву клетки ходящей фигуры или её "
                             "тип");
-                step.X = Let;
+                step.x = let;
+                R = 1;
             } else if (R == 2)
-                return Error2(R, Let);
+                return error2(R, let);
             else if (R == 3) {
-                if (step.X2)
-                    return Error(
+                if (step.x2)
+                    return error(
                             "Вы уже ввели букву клетки, куда ходит фигура");
-                step.X2 = Let;
+                step.x2 = let;
             } else {
             }
             break;
@@ -300,19 +328,19 @@ struct Step Parser(text Str)
         case '7':
         case '8':
             if (R == 0 || R == 1) {
-                if (!step.X)
-                    return Error(
+                if (!step.x)
+                    return error(
                             "Вы ещё не ввели букву клетки ходящей фигуры или "
                             "её тип");
-                step.Y = Let;
+                step.y = let;
                 R = 2;
             } else if (R == 2)
-                return Error2(R, Let);
+                return error2(R, let);
             else if (R == 3) {
-                if (!step.X2)
-                    return Error(
+                if (!step.x2)
+                    return error(
                             "Вы ещё не ввели букву клетки, куда ходит фигура");
-                step.Y2 = Let;
+                step.y2 = let;
                 R = 4;
             } else {
             }
@@ -320,32 +348,145 @@ struct Step Parser(text Str)
         case '-':
         case 'x':
             if (R == 2)
-                step.Type = Let;
+                step.type = let;
             else
-                return Error2(R, Let);
+                return error2(R, let);
             R = 3;
             break;
         case '+':
         case '#':
             if (R == 4)
-                step.Figure2 = Let;
+                step.figure2 = let;
             else
-                return Error2(R, Let);
+                return error2(R, let);
             R = 5;
+            break;
         }
     }
     return step;
 }
 
+char lower(char s)
+{
+    return s >= 'A' && s <= 'Z' ? s - 'A' + 'a' : s;
+}
+char upper(char s)
+{
+    return s >= 'a' && s <= 'z' ? s - 'a' + 'A' : s;
+}
+
+text caserson(char s, char p)
+{
+    text figures[6][4]
+            = {{"p", "пешка", "пешку", "пешкой"},
+               {"r", "ладья", "ладью", "ладьёй"},
+               {"n", "конь", "коня", "конём"},
+               {"b", "слон", "слона", "слоном"},
+               {"q", "ферзь", "ферзя", "ферзем"},
+               {"k", "король", "короля", "королём"}};
+    s = lower(s);
+    for (int i = 0; i < 6; i++)
+        if (figures[i][0][0] == s)
+            return figures[i][p + 1];
+    return "???";
+}
+
+void error_h(text err)
+{
+    printf("Ошибка игровой механики:\n  %s\n", err);
+}
+void error_h2(text err, char tile, char tile2)
+{
+    char str[150];
+    sprintf(str, err, caserson(tile, 2), tile, caserson(tile2, 0), tile2);
+
+    printf("Ошибка игровой механики:\n  %s\n", str);
+}
+
+void handler(
+        char board[8][8], struct Step step, struct Vector* history, int* step_n)
+{
+    int x = step.x - 'a', y = 7 - (step.y - '1');
+    int x2 = step.x2 - 'a', y2 = 7 - (step.y2 - '1');
+    char is_white = (*step_n) % 2 == 0;
+    char tile = board[y][x];
+    char tile_is_white = tile >= 'A' && tile <= 'Z';
+    char tile2 = board[y2][x2];
+    char tile2_is_white = tile2 >= 'A' && tile2 <= 'Z';
+    if (tile == ' ')
+        return error_h("Вы не можете ходить пустой клеткой");
+    if (x == x2 && y == y2)
+        return error_h("Вы не можете ходить в ту же самую клетку");
+    if (is_white && !tile_is_white)
+        return error_h("Вы не можете ходить чёрными фигурами");
+    if ((!is_white) && tile_is_white)
+        return error_h("Вы не можете ходить белыми фигурами");
+    if (tile2 == ' ') {
+        if (step.type == 'x')
+            return error_h("Вы не можете ходить в режиме 'x'. Используйте '-'");
+    } else {
+        if (is_white == tile2_is_white)
+            return error_h("Вы не можете рубить свои же фигуры");
+        if (step.type == '-')
+            return error_h("Вы не можете рубить в режиме '-'. Используйте 'x'");
+    }
+    if (step.figure && step.figure != upper(tile))
+        return error_h2(
+                "Вы хотели походить %s '%c', но на поле оказалась %s '%c'",
+                step.figure,
+                tile);
+    if (step.figure2 && step.type == '-')
+        return error_h(
+                "Вы не можете выбирать, кого хочете рубить, в режиме '-'. "
+                "Используйте 'x'");
+
+    char dx = x2 - x, dy = y2 - y;
+    switch (lower(tile)) {
+    case 'p':
+        if (step.type == '-') {
+            if ((dx != 0 || dy != -1) && is_white)
+                return error_h(
+                        "Белая пешка может ходить только вверх на одну клетку");
+            if ((dx != 0 || dy != 1) && !is_white)
+                return error_h(
+                        "Чёрная пешка может ходить только вниз на одну клетку");
+        } else {
+            if ((dy != -1 || (dx != -1 && dx != 1)) && is_white)
+                return error_h(
+                        "Белая пешка может рубить только вверх по диагонали на "
+                        "одну клетку");
+            if ((dy != 1 || (dx != -1 && dx != 1)) && !is_white)
+                return error_h(
+                        "Чёрная пешка может рубить только вниз по диагонали на "
+                        "одну клетку");
+        }
+        break;
+    case 'r':
+        if (dx == 0) {
+        } else if (dy == 0) {
+        } else
+            return error_h("Тура не может перемещаться по диагонали");
+    }
+
+    if (step.type == '-')
+        printf("Вы успешно походили\n");
+    else
+        printf("Вы успешно срубили у соперника фигуру\n");
+    board[y][x] = ' ';
+    board[y2][x2] = tile;
+
+    vector_add(history, step.src);
+    (*step_n)++;
+    builder(board, history);
+}
+
 int main(int argc, text* args)
 {
-    vector_test();
-    return 0;
     printf("Аргументы:\n");
     for (int i = 0; i < argc; i++) {
         printf("%u %s\n", i, args[i]);
     }
-    char Board[8][8]
+    char board[8][8]
             = {"rnbqkbnr",
                "pppppppp",
                "        ",
@@ -354,29 +495,31 @@ int main(int argc, text* args)
                "        ",
                "PPPPPPPP",
                "RNBQKBNR"};
-    int error_code = Builder(Board);
+    struct Vector* history = vector_new();
+    int error_code = builder(board, history);
     if (error_code)
         return error_code;
-    int StepN = 0;
+    int step_n = 0;
     while (1) {
-        char Str[100];
-        printf("Ход %s\n", StepN % 2 ? "чёрного" : "белого");
-        printf("%d. ", StepN / 2 + 1);
-        scanf("%s", (char*)&Str);
-        if (!Str[1])
+        char str[100];
+        printf("Ход %s\n", step_n % 2 ? "чёрного" : "белого");
+        printf("%d. ", step_n / 2 + 1);
+        scanf("%s", (char*)&str);
+        if (!str[1])
             break;
-        struct Step Res = Parser(Str);
-        if (Res.Err) {
-            printf("Ошибка формата ввода:\n  %s\n", Res.Err);
-            if (Res.Gen)
-                free((void*)Res.Err);
+        struct Step res = parser(str);
+        if (res.err) {
+            printf("Ошибка формата ввода:\n  %s\n", res.err);
+            if (res.gen)
+                free((void*)res.err);
         } else {
-            printf("Ходящая фигура: %c %c%c\n", Res.Figure, Res.X, Res.Y);
-            printf("Куда топает: %c %c%c\n", Res.Figure2, Res.X2, Res.Y2);
-            printf("Тип хода: %c\n", Res.Type);
-            StepN += 1;
+            printf("Ходящая фигура: %c %c%c\n", res.figure, res.x, res.y);
+            printf("Куда топает: %c %c%c\n", res.figure2, res.x2, res.y2);
+            printf("Тип хода: %c\n", res.type);
+            handler(board, res, history, &step_n);
         }
     }
+    vector_delete(history);
     printf("HAPPY END!!!\n");
     return 0;
 }
