@@ -242,12 +242,12 @@ struct Step {
     text err, src;
 };
 
-struct Step error(text err)
+struct Step error_parser_const_pool(text err)
 {
     struct Step step = {.err = err, .gen = 0};
     return step;
 }
-struct Step error2(int n, char c)
+struct Step error_parser_generated(int n, char c)
 {
     text errors[]
             = {"Ожидался ввод клетки ходящей фигуры или её тип",
@@ -291,7 +291,7 @@ struct Step parser(text str)
             else if (R == 4)
                 step.figure2 = let;
             else
-                return error2(R, let);
+                return error_parser_generated(R, let);
             R += 1;
             break;
         case 'a':
@@ -304,20 +304,20 @@ struct Step parser(text str)
         case 'h':
             if (R == 0 || R == 1) {
                 if (step.x)
-                    return error(
+                    return error_parser_const_pool(
                             "Вы уже ввели букву клетки ходящей фигуры или её "
                             "тип");
                 step.x = let;
                 R = 1;
             } else if (R == 2)
-                return error2(R, let);
+                return error_parser_generated(R, let);
             else if (R == 3) {
                 if (step.x2)
-                    return error(
+                    return error_parser_const_pool(
                             "Вы уже ввели букву клетки, куда ходит фигура");
                 step.x2 = let;
-            } else {
-            }
+            } else
+                return error_parser_generated(R, let);
             break;
         case '1':
         case '2':
@@ -329,28 +329,28 @@ struct Step parser(text str)
         case '8':
             if (R == 0 || R == 1) {
                 if (!step.x)
-                    return error(
+                    return error_parser_const_pool(
                             "Вы ещё не ввели букву клетки ходящей фигуры или "
                             "её тип");
                 step.y = let;
                 R = 2;
             } else if (R == 2)
-                return error2(R, let);
+                return error_parser_generated(R, let);
             else if (R == 3) {
                 if (!step.x2)
-                    return error(
+                    return error_parser_const_pool(
                             "Вы ещё не ввели букву клетки, куда ходит фигура");
                 step.y2 = let;
                 R = 4;
-            } else {
-            }
+            } else
+                return error_parser_generated(R, let);
             break;
         case '-':
         case 'x':
             if (R == 2)
                 step.type = let;
             else
-                return error2(R, let);
+                return error_parser_generated(R, let);
             R = 3;
             break;
         case '+':
@@ -358,7 +358,7 @@ struct Step parser(text str)
             if (R == 4)
                 step.figure2 = let;
             else
-                return error2(R, let);
+                return error_parser_generated(R, let);
             R = 5;
             break;
         }
@@ -391,15 +391,14 @@ text caserson(char s, char p)
     return "???";
 }
 
-void error_h(text err)
+void error_handler_const_pool(text err)
 {
     printf("Ошибка игровой механики:\n  %s\n", err);
 }
-void error_h2(text err, char tile, char tile2)
+void error_handler_caserson(text err, char tile, char tile2)
 {
     char str[150];
     sprintf(str, err, caserson(tile, 2), tile, caserson(tile2, 0), tile2);
-
     printf("Ошибка игровой механики:\n  %s\n", str);
 }
 
@@ -414,29 +413,33 @@ void handler(
     char tile2 = board[y2][x2];
     char tile2_is_white = tile2 >= 'A' && tile2 <= 'Z';
     if (tile == ' ')
-        return error_h("Вы не можете ходить пустой клеткой");
+        return error_handler_const_pool("Вы не можете ходить пустой клеткой");
     if (x == x2 && y == y2)
-        return error_h("Вы не можете ходить в ту же самую клетку");
+        return error_handler_const_pool(
+                "Вы не можете ходить в ту же самую клетку");
     if (is_white && !tile_is_white)
-        return error_h("Вы не можете ходить чёрными фигурами");
+        return error_handler_const_pool("Вы не можете ходить чёрными фигурами");
     if ((!is_white) && tile_is_white)
-        return error_h("Вы не можете ходить белыми фигурами");
+        return error_handler_const_pool("Вы не можете ходить белыми фигурами");
     if (tile2 == ' ') {
         if (step.type == 'x')
-            return error_h("Вы не можете ходить в режиме 'x'. Используйте '-'");
+            return error_handler_const_pool(
+                    "Вы не можете ходить в режиме 'x'. Используйте '-'");
     } else {
         if (is_white == tile2_is_white)
-            return error_h("Вы не можете рубить свои же фигуры");
+            return error_handler_const_pool(
+                    "Вы не можете рубить свои же фигуры");
         if (step.type == '-')
-            return error_h("Вы не можете рубить в режиме '-'. Используйте 'x'");
+            return error_handler_const_pool(
+                    "Вы не можете рубить в режиме '-'. Используйте 'x'");
     }
     if (step.figure && step.figure != upper(tile))
-        return error_h2(
+        return error_handler_caserson(
                 "Вы хотели походить %s '%c', но на поле оказалась %s '%c'",
                 step.figure,
                 tile);
     if (step.figure2 && step.type == '-')
-        return error_h(
+        return error_handler_const_pool(
                 "Вы не можете выбирать, кого хочете рубить, в режиме '-'. "
                 "Используйте 'x'");
 
@@ -445,18 +448,18 @@ void handler(
     case 'p':
         if (step.type == '-') {
             if ((dx != 0 || dy != -1) && is_white)
-                return error_h(
+                return error_handler_const_pool(
                         "Белая пешка может ходить только вверх на одну клетку");
             if ((dx != 0 || dy != 1) && !is_white)
-                return error_h(
+                return error_handler_const_pool(
                         "Чёрная пешка может ходить только вниз на одну клетку");
         } else {
             if ((dy != -1 || (dx != -1 && dx != 1)) && is_white)
-                return error_h(
+                return error_handler_const_pool(
                         "Белая пешка может рубить только вверх по диагонали на "
                         "одну клетку");
             if ((dy != 1 || (dx != -1 && dx != 1)) && !is_white)
-                return error_h(
+                return error_handler_const_pool(
                         "Чёрная пешка может рубить только вниз по диагонали на "
                         "одну клетку");
         }
@@ -465,13 +468,14 @@ void handler(
         if (dx == 0) {
         } else if (dy == 0) {
         } else
-            return error_h("Тура не может перемещаться по диагонали");
+            return error_handler_const_pool(
+                    "Тура не может перемещаться по диагонали");
     }
 
     if (step.type == '-')
         printf("Вы успешно походили\n");
     else
-        printf("Вы успешно срубили у соперника фигуру\n");
+        printf("Вы успешно у соперника срубили фигуру\n");
     board[y][x] = ' ';
     board[y2][x2] = tile;
 
