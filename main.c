@@ -1,3 +1,4 @@
+#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -233,6 +234,13 @@ int builder(char board[8][8], struct Vector* history)
             "</body>\n"
             "</html>");
     fclose(file);
+    for (int y = 0; y < 8; y++) {
+        printf("%d|", 8 - y);
+        for (int x = 0; x < 8; x++)
+            printf("%c", board[y][x]);
+        printf("|\n");
+    }
+    printf(" *~~~~~~~~*\n  abcdefgh\n");
     printf("Создание шахматной доски выполнено успешно\n");
     return 0;
 }
@@ -366,15 +374,6 @@ struct Step parser(text str)
     return step;
 }
 
-char lower(char s)
-{
-    return s >= 'A' && s <= 'Z' ? s - 'A' + 'a' : s;
-}
-char upper(char s)
-{
-    return s >= 'a' && s <= 'z' ? s - 'a' + 'A' : s;
-}
-
 text caserson(char s, char p)
 {
     text figures[6][4]
@@ -384,7 +383,7 @@ text caserson(char s, char p)
                {"b", "слон", "слона", "слоном"},
                {"q", "ферзь", "ферзя", "ферзем"},
                {"k", "король", "короля", "королём"}};
-    s = lower(s);
+    s = tolower(s);
     for (int i = 0; i < 6; i++)
         if (figures[i][0][0] == s)
             return figures[i][p + 1];
@@ -433,7 +432,7 @@ void handler(
             return error_handler_const_pool(
                     "Вы не можете рубить в режиме '-'. Используйте 'x'");
     }
-    if (step.figure && step.figure != upper(tile))
+    if (step.figure && step.figure != toupper(tile))
         return error_handler_caserson(
                 "Вы хотели походить %s '%c', но на поле оказалась %s '%c'",
                 step.figure,
@@ -444,7 +443,7 @@ void handler(
                 "Используйте 'x'");
 
     char dx = x2 - x, dy = y2 - y;
-    switch (lower(tile)) {
+    switch (tolower(tile)) {
     case 'p':
         if (step.type == '-') {
             if ((dx != 0 || dy != -1) && is_white)
@@ -486,10 +485,6 @@ void handler(
 
 int main(int argc, text* args)
 {
-    printf("Аргументы:\n");
-    for (int i = 0; i < argc; i++) {
-        printf("%u %s\n", i, args[i]);
-    }
     char board[8][8]
             = {"rnbqkbnr",
                "pppppppp",
