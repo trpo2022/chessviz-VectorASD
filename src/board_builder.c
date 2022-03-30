@@ -1,4 +1,6 @@
 #include <board_builder.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 int board_print_html(char board[8][8], struct Vector *history) {
     FILE *file;

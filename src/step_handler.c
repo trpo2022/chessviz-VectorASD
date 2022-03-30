@@ -1,3 +1,6 @@
+#include <ctype.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <step_handler.h>
 
 text caserson(char s, char p) {

@@ -1,11 +1,9 @@
-#include <ctype.h>
-//#include <stdio.h>
-//#include <stdlib.h>
-//#include <string.h>
-
 #include <board_builder.h>
 #include <input_parser.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <step_handler.h>
+#include <string.h>
 
 int main(int argc, text *args) {
     char board[8][8] = {
@@ -18,7 +16,7 @@ int main(int argc, text *args) {
         "PPPPPPPP",
         "RNBQKBNR"};
     struct Vector *history = vector_new();
-    
+
     board_print_plain(board, history);
     int error_code = board_print_html(board, history);
     if (error_code) return error_code;

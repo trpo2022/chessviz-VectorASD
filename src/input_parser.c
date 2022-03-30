@@ -1,4 +1,6 @@
 #include <input_parser.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 struct Step error_const_pool(text err) {
     struct Step step = {.err = err, .gen = 0};

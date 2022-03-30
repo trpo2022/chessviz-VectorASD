@@ -1,8 +1,5 @@
 #pragma once
 
-#include <stdlib.h>
-#include <stdio.h>
-
 typedef const char *text;
 
 struct Step {
