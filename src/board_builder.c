@@ -125,4 +125,3 @@ void board_print_plain(char board[8][8], struct Vector *history) {
     printf("Создание шахматной доски выполнено успешно\n");
     printf("XD\n");
 }
-
