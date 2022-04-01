@@ -1,10 +1,7 @@
 # Assembly artifacts
-*.exe
-*.dll
 *.o
-*.so
-*.dylib
 *.d
+*.a
 test
 
 # Backup files
