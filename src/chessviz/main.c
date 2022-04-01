@@ -42,5 +42,24 @@ int main(int argc, text *args) {
     }
     vector_delete(history);
     printf("HAPPY END!!!\n");
+    
+    if (1)
+    
+    
+    
+    
+    {
+        
+        
+        
+        
+        
+        		printf("ads,kpasodkads\n");
+            printf("ads,kpasodkads\n");
+        
+         	printf("ads,kpasodkads\n");
+    }
+    
+    
     return 0;
 }
