@@ -31,3 +31,7 @@ $(OBJ):
 .PHONY: clean
 clean:
 	rm -f $(APP_PATH) $(LIB_PATH) $(OBJ) $(DEPS)
+
+run:
+	./$(APP_PATH)
+
