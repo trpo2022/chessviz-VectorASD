@@ -44,7 +44,7 @@ run:
 test: $(TEST_PATH)
 	./$(TEST_PATH)
 
-$(TEST_PATH): $(TEST_OBJ)
+$(TEST_PATH): $(TEST_OBJ) $(LIB_PATH)
 	gcc $^ -o $@
 
 $(TEST_OBJ):

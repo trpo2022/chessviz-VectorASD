@@ -27,7 +27,7 @@ int main(int argc, text *args) {
         printf("%d. ", step_n / 2 + 1);
         scanf("%s", (char *) &str);
         if (!str[1]) break;
-        struct Step res = parser(str);
+        struct Step res = parser(str, 0);
         if (res.err) {
             printf("Ошибка формата ввода:\n  %s\n", res.err);
             if (res.gen) free((void *) res.err);

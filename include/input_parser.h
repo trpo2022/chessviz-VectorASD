@@ -1,5 +1,6 @@
 #pragma once
 
+typedef unsigned char byte;
 typedef const char *text;
 
 struct Step {
@@ -7,4 +8,4 @@ struct Step {
     text err, src;
 };
 
-struct Step parser(text str);
+struct Step parser(text str, byte dbg);

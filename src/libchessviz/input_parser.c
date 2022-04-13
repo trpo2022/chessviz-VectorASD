@@ -6,26 +6,37 @@ struct Step error_const_pool(text err) {
     struct Step step = {.err = err, .gen = 0};
     return step;
 }
+
+text errors[] = {
+    "Ожидался ввод клетки ходящей фигуры или её тип",
+    "Ожидался ввод клетки ходящей фигуры",
+    "Ожидался ввод типа хода",
+    "Ожидался ввод клетки, куда походит фигура",
+    "Ожидался ввод типа съедаемой фигуры или шах или мат или en "
+    "passant"};
+
 struct Step error_generated(int n, char c) {
-    text errors[] = {
-        "Ожидался ввод клетки ходящей фигуры или её тип",
-        "Ожидался ввод клетки ходящей фигуры",
-        "Ожидался ввод типа хода",
-        "Ожидался ввод клетки, куда походит фигура",
-        "Ожидался ввод типа съедаемой фигуры или шах или мат или en "
-        "passant"};
     char *err = (char *) malloc(100);
     sprintf(err, "%s, а было введено: '%c'", errors[n], c);
     struct Step step = {.err = err, .gen = 1};
     return step;
 }
-struct Step parser(text str) {
+
+struct Step error_generated_void(int n) {
+    char *err = (char *) malloc(100);
+    sprintf(err, "%s, но неожиданно встречен конец :/", errors[n]);
+    struct Step step = {.err = err, .gen = 1};
+    return step;
+}
+
+struct Step parser(text str, byte dbg) {
     int pos = 0, R = 0;
     struct Step step = {.figure = 0, .x = 0, .y = 0, .type = 0, .x2 = 0, .y2 = 0, .figure2 = 0, .err = 0, .src = str};
+    if (dbg) printf("\n");
     while (str[pos] && R < 5) {
         char let = str[pos++];
         if (let == ' ') continue;
-        printf("W%d: %c\n", R, let);
+        if (dbg) printf("W%d: %c\n", R, let);
         switch (let) {
         case 'K':
         case 'Q':
@@ -104,5 +115,9 @@ struct Step parser(text str) {
             break;
         }
     }
+    if (!step.x) return error_generated_void(0);
+    if (!step.y) return error_generated_void(1);
+    if (!step.type) return error_generated_void(2);
+    if (!step.x2 || !step.y2) return error_generated_void(3);
     return step;
 }
