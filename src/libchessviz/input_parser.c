@@ -16,14 +16,14 @@ text errors[] = {
     "passant"};
 
 struct Step error_generated(int n, char c) {
-    char *err = (char *) malloc(100);
+    char *err = (char *) malloc(256);
     sprintf(err, "%s, а было введено: '%c'", errors[n], c);
     struct Step step = {.err = err, .gen = 1};
     return step;
 }
 
 struct Step error_generated_void(int n) {
-    char *err = (char *) malloc(100);
+    char *err = (char *) malloc(256);
     sprintf(err, "%s, но неожиданно встречен конец :/", errors[n]);
     struct Step step = {.err = err, .gen = 1};
     return step;
@@ -113,6 +113,14 @@ struct Step parser(text str, byte dbg) {
                 return error_generated(R, let);
             R = 5;
             break;
+        default:
+            if (let == '0' || let == '9' || (let >= 'i' && let <= 'z')) {
+                char *err = (char *) malloc(128);
+                sprintf(err, "Символ '%c' за пределами доски", let);
+                struct Step step = {.err = err, .gen = 1};
+                return step;
+            }
+            return error_generated(R, let);
         }
     }
     if (!step.x) return error_generated_void(0);
