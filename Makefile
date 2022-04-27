@@ -36,7 +36,7 @@ $(OBJ):
 clean:
 	rm -f $(APP_PATH) $(LIB_PATH) $(OBJ) $(DEPS) $(TEST_OBJ) $(TEST_PATH)
 
-run:
+run: all
 	./$(APP_PATH)
 
 .PHONY: test
