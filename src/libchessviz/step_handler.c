@@ -17,14 +17,22 @@ text caserson(char s, char p) {
     return "???";
 }
 
-void error_parser_const_pool(text err) { printf("Ошибка игровой механики:\n  %s\n", err); }
-void error_caserson(text err, char tile, char tile2) {
-    char str[150];
+struct HandlerError error_parser_const_pool(text err) {
+    struct HandlerError res = {err, 0};
+    return res;
+}
+struct HandlerError error_caserson(text err, char tile, char tile2) {
+    char *str = malloc(256);
     sprintf(str, err, caserson(tile, 2), tile, caserson(tile2, 0), tile2);
-    printf("Ошибка игровой механики:\n  %s\n", str);
+    struct HandlerError res = {str, 1};
+    return res;
 }
 
-void handler(char board[8][8], struct Step step, struct Vector *history, int *step_n) {
+struct HandlerError handler(char board[8][8], struct Step step, struct Vector *history, int *step_n) {
+    if (step.err) {
+        if (step.gen) free((void *) step.err);
+        return error_parser_const_pool("Осторожнее с тестированием этой функции (parser error) :/");
+    }
     int x = step.x - 'a', y = 7 - (step.y - '1');
     int x2 = step.x2 - 'a', y2 = 7 - (step.y2 - '1');
     char is_white = (*step_n) % 2 == 0;
@@ -68,11 +76,12 @@ void handler(char board[8][8], struct Step step, struct Vector *history, int *st
             return error_parser_const_pool("Тура не может перемещаться по диагонали");
     }
 
-    printf(step.type == '-' ? "Вы успешно походили\n" : "Вы успешно у соперника срубили фигуру\n");
-
     board[y][x] = ' ';
     board[y2][x2] = tile;
 
-    vector_add(history, step.src);
+    if (history) vector_add(history, step.src);
     (*step_n)++;
+
+    struct HandlerError success = {NULL, 0};
+    return success;
 }
