@@ -21,21 +21,27 @@ int main(int argc, text *args) {
     int error_code = board_print_html(board, history);
     if (error_code) return error_code;
     int step_n = 0;
+    text tilds = "\n~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
     while (1) {
         char str[100];
         printf("Ход %s\n", step_n % 2 ? "чёрного" : "белого");
         printf("%d. ", step_n / 2 + 1);
         scanf("%s", (char *) &str);
         if (!str[1]) break;
-        struct Step res = parser(str);
-        if (res.err) {
-            printf("Ошибка формата ввода:\n  %s\n", res.err);
-            if (res.gen) free((void *) res.err);
+        struct Step step = parser(str, 0);
+        if (step.err) {
+            printf("%sОшибка формата ввода:\n  %s%s\n", tilds, step.err, tilds);
+            if (step.gen) free((void *) step.err);
         } else {
-            printf("Ходящая фигура: %c %c%c\n", res.figure, res.x, res.y);
-            printf("Куда топает: %c %c%c\n", res.figure2, res.x2, res.y2);
-            printf("Тип хода: %c\n", res.type);
-            handler(board, res, history, &step_n);
+            printf("Ходящая фигура: %c %c%c\n", step.figure, step.x, step.y);
+            printf("Куда топает: %c %c%c\n", step.figure2, step.x2, step.y2);
+            printf("Тип хода: %c\n", step.type);
+            struct HandlerError err = handler(board, step, history, &step_n);
+            if (err.str) {
+                printf("%sОшибка игровой механики:\n  %s%s\n", tilds, err.str, tilds);
+                if (err.generated) free((void *) step.err);
+            } else
+                printf(step.type == '-' ? "Вы успешно походили\n\n" : "Вы успешно у соперника срубили фигуру\n\n");
         }
         board_print_plain(board, history);
         board_print_html(board, history);
