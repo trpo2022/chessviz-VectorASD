@@ -74,8 +74,14 @@ int board_print_html(char board[8][8], struct Vector *history) {
     struct VectorNode *node = history->first;
     int n = 0;
     while (node) {
-        fprintf(file, "    <caption>%u. %s</caption>\n", n++ / 2 + 1, node->step);
+        text step = node->step;
         node = node->child;
+        if (node) {
+            fprintf(file, "    <caption>%u. %s   %s</caption>\n", n / 2 + 1, step, node->step);
+            node = node->child;
+            n += 2;
+        } else
+            fprintf(file, "    <caption>%u. %s</caption>\n", n++ / 2 + 1, step);
     }
     for (int y = 0; y < 8; y++) {
         fprintf(file, "    <tr><td>%u</td>\n", 8 - y);
@@ -113,8 +119,14 @@ void board_print_plain(char board[8][8], struct Vector *history) {
     struct VectorNode *node = history->first;
     int n = 0;
     while (node) {
-        printf("    %u. %s\n", n++ / 2 + 1, node->step);
+        text step = node->step;
         node = node->child;
+        if (node) {
+            printf("    %u. %s   %s\n", n / 2 + 1, step, node->step);
+            node = node->child;
+            n += 2;
+        } else
+            printf("    %u. %s\n", n++ / 2 + 1, step);
     }
     for (int y = 0; y < 8; y++) {
         printf("%d|", 8 - y);
