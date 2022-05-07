@@ -29,11 +29,13 @@ struct HandlerError error_caserson(text err, char tile, char tile2) {
     return res;
 }
 
+// clang-format off
 #define max(a, b) ({ a > b ? a : b; })
 #define sign(a) ({ a > 0 ? 1 : a == 0 ? 0 : -1; })
+// clang-format on
 
 struct HandlerError Tracer(char board[8][8], int x, int y, int dx, int dy) {
-    int steps = max(abs(dx), abs(dy));
+    int steps = max(abs(dx), abs(dy)) - 1;
     dx = sign(dx);
     dy = sign(dy);
     int walk_figure = board[y][x];
@@ -69,8 +71,10 @@ struct HandlerError handler(char board[8][8], struct Step step, struct Vector *h
     char is_white = (*step_n) % 2 == 0;
     char tile = board[y][x];
     char tile_is_white = tile >= 'A' && tile <= 'Z';
+    char ltile = tolower(tile);
     char tile2 = board[y2][x2];
     char tile2_is_white = tile2 >= 'A' && tile2 <= 'Z';
+    char dx = x2 - x, dy = y2 - y;
     if (tile == ' ') return error_parser_const_pool("Вы не можете ходить пустой клеткой");
     if (x == x2 && y == y2) return error_parser_const_pool("Вы не можете ходить в ту же самую клетку");
     if (is_white && !tile_is_white) return error_parser_const_pool("Вы не можете ходить чёрными фигурами");
@@ -82,11 +86,21 @@ struct HandlerError handler(char board[8][8], struct Step step, struct Vector *h
         if (step.type == '-') return error_parser_const_pool("Вы не можете рубить в режиме '-'. Используйте 'x'");
     }
     if (step.figure && step.figure != toupper(tile)) return error_caserson("Вы хотели походить %s '%c', но на поле оказалась фигура %s '%c'", step.figure, tile);
-    if (step.figure2 && step.type == '-')
-        return error_parser_const_pool("Вы не можете выбирать, кого хочете рубить, в режиме '-'. Используйте 'x'");
 
-    char dx = x2 - x, dy = y2 - y;
-    switch (tolower(tile)) {
+    char morf = -1;
+    if (step.type == '-') {
+        if (ltile == 'p' && is_white && y == 1 && y2 == 0 && dx == 0)
+            morf = step.figure2;
+        else if (ltile == 'p' && !is_white && y == 6 && y2 == 7 && dx == 0)
+            morf = step.figure2;
+        else if (step.figure2)
+            return error_parser_const_pool("Вы не можете выбирать, кого хочете рубить, в режиме '-'. Используйте 'x'");
+    }
+    if (morf == 0) return error_parser_const_pool("Вы не выбрали, в кого должна превращаться пешка");
+    if (morf == 'P') return error_parser_const_pool("Пешка не может превращаться в саму себя");
+    if (morf == 'K') return error_parser_const_pool("Ещё один король? Серьёзно? XD");
+
+    switch (ltile) {
     case 'p':
         if (step.type == '-') {
             if (!(dx == 0 && (dy == -1 || (dy == -2 && y == 6))) && is_white)
@@ -118,7 +132,7 @@ struct HandlerError handler(char board[8][8], struct Step step, struct Vector *h
         break;
     }
     case 'q': {
-        if (dx != 0 && dy != 0 && abs(dx) != abs(dy)) return error_parser_const_pool("Ферзь не может идти не по ровной диагонали");
+        if (dx != 0 && dy != 0 && abs(dx) != abs(dy)) return error_parser_const_pool("Королева не может идти не по ровной диагонали");
         struct HandlerError err = Tracer(board, x, y, dx, dy);
         if (err.str) return err;
         break;
@@ -128,6 +142,7 @@ struct HandlerError handler(char board[8][8], struct Step step, struct Vector *h
         break;
     }
 
+    if (morf != -1) tile = is_white ? morf : tolower(morf);
     board[y][x] = ' ';
     board[y2][x2] = tile;
 
