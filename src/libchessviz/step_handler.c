@@ -45,7 +45,7 @@ struct HandlerError Tracer(char board[8][8], int x, int y, int dx, int dy) {
         if (x < 0 || y < 0 || x > 7 || y > 7) {
             char *str = malloc(128);
             sprintf(str, "Внезапный выход за границу: %u %u", x, y);
-            struct HandlerError err = {str, 0};
+            struct HandlerError err = {str, 1};
             return err;
         }
         char figure = board[y][x];
@@ -53,7 +53,7 @@ struct HandlerError Tracer(char board[8][8], int x, int y, int dx, int dy) {
             char *str = malloc(128);
             figure = tolower(figure);
             sprintf(str, "Внезапно на пути %s %s при ходьбе %s", figure == 'p' || figure == 'r' ? "встречена" : "встречен", caserson(figure, 0), caserson(walk_figure, 2));
-            struct HandlerError err = {str, 0};
+            struct HandlerError err = {str, 1};
             return err;
         }
     }
